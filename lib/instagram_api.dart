@@ -4,5 +4,6 @@
 library instagram_api;
 
 export 'src/instagram_api_base.dart';
+export 'src/instagram_scrapper.dart';
 
 // TODO: Export any libraries intended for clients of this package.
