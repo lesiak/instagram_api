@@ -28,7 +28,7 @@ class InstagramScrapper {
     //self.rhx_gis = self.get_shared_data()['rhx_gis']
     //self.authenticated = True
 
-   // String csrftoken = await getXsrfToken();
+   // String csrfToken = await getXsrfToken();
 
     var headers = {HttpHeaders.userAgentHeader: CHROME_WIN_UA};
     Map<String, dynamic> shared_data = await get_shared_data('', headers);
@@ -39,25 +39,36 @@ class InstagramScrapper {
     //self.authenticated = True
   }
 
+  void scrape() async {
+    var headers = {HttpHeaders.userAgentHeader: STORIES_UA};
+    for (var userName in _userNames) {
+      // Get the user metadata.
+      Map<String, dynamic> shared_data = await get_shared_data(userName, headers);
+      Map<String, dynamic> user = get_user(shared_data);
+      print(user);
+    }
+  }
+
+  dynamic get_user(Map<String, dynamic> shared_data) {
+    Map<String, dynamic> user;
+    try {
+      user = shared_data['entry_data']['ProfilePage'][0]['graphql']['user'];
+    } on NoSuchMethodError catch (_) {
+      user = null;
+    }
+    return user;
+  }
+
   Future<String> getXsrfToken() async {
     var headers = {HttpHeaders.refererHeader: BASE_URL, HttpHeaders.userAgentHeader: STORIES_UA};
     var response = await httpClient.get(BASE_URL, headers: headers);
-    var csrftoken = response.getCookie("csrftoken");
-    return csrftoken;
-  }
-
-  void scrape() async {
-    var headers = {HttpHeaders.userAgentHeader: STORIES_UA};
-    var userName = _userNames[0];
-    // Get the user metadata.
-    Map<String, dynamic> shared_data = await get_shared_data(userName, headers);
-    Map<String, dynamic> user = shared_data['entry_data']['ProfilePage'][0]['graphql']['user'];
-    print(user);
+    var csrfToken = response.getCookie("csrftoken");
+    return csrfToken;
   }
 
   Future<Map<String, dynamic>> get_shared_data(String username, Map<String, String> headers) async {
     String resp = await get_json(BASE_URL + username, headers);
-    if (resp.contains('_sharedData')) {
+    if (resp != null && resp.contains('_sharedData')) {
       final shared_data = resp.split("window._sharedData = ")[1].split(";</script>")[0];
       Map<String, dynamic> parsedJson = json.decode(shared_data);
       return parsedJson;
@@ -68,11 +79,16 @@ class InstagramScrapper {
 
   Future<String> get_json(String url, Map<String, String> headers) async {
     var response = await safe_get(url, headers);
-    return response.body;
+    return response?.body;
   }
 
   Future<IoHttpResponse> safe_get(String url, Map<String, String> headers) {
-    return httpClient.get(url, headers: headers);
+    return httpClient.get(url, headers: headers).then((resp) {
+      if (resp.statusCode == 404) {
+        return null;
+      }
+      return resp;
+    });
   }
 
   void close() {

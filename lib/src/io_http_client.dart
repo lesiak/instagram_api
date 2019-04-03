@@ -31,9 +31,17 @@ class IoHttpResponse {
 
   IoHttpResponse(this.response);
 
-  Future<String> get body => readResponse();
+  Future<String> get body => _readResponse();
 
-  Future<String> readResponse() {
+  List<Cookie> get cookies => response.cookies;
+
+  int get statusCode => response.statusCode;
+
+  String getCookie(String name) {
+    return response.cookies.firstWhere((cookie) => cookie.name == name).value;
+  }
+
+  Future<String> _readResponse() {
     var completer = new Completer<String>();
     var contents = new StringBuffer();
     response.transform(utf8.decoder).listen((String data) {
@@ -42,9 +50,4 @@ class IoHttpResponse {
     return completer.future;
   }
 
-  List<Cookie> get cookies => response.cookies;
-
-  String getCookie(String name) {
-    return response.cookies.firstWhere((cookie) => cookie.name == name).value;
-  }
 }
