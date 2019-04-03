@@ -3,7 +3,11 @@ import 'dart:convert';
 import 'dart:io';
 
 class IoHttpClient {
-  HttpClient httpClient = HttpClient();
+  final HttpClient httpClient = HttpClient();
+
+  IoHttpClient() {
+    httpClient.userAgent = null;
+  }
 
   Future<IoHttpResponse> get(String uri, {Map<String, String> headers}) {
     return getUrl(Uri.parse(uri), headers: headers);
@@ -14,14 +18,12 @@ class IoHttpClient {
     headers.forEach((key, value) {
       request.headers.add(key, value);
     });
-    //var response = await ;
     return IoHttpResponse(await request.close());
   }
 
   void close() {
     httpClient.close();
-}
-
+  }
 }
 
 class IoHttpResponse {
