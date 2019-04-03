@@ -40,6 +40,8 @@ class IoHttpResponse {
     return completer.future;
   }
 
+  List<Cookie> get cookies => response.cookies;
+
   String getCookie(String name) {
     return response.cookies.firstWhere((cookie) => cookie.name == name).value;
   }
