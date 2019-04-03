@@ -2,6 +2,8 @@ import 'dart:async';
 import 'dart:convert';
 import 'dart:io';
 
+import 'package:http/src/utils.dart';
+
 class IoHttpClient {
   final HttpClient httpClient = HttpClient();
 
@@ -21,9 +23,22 @@ class IoHttpClient {
     return IoHttpResponse(await request.close());
   }
 
+  Future<IoHttpResponse> postFormData(Uri uri, Map<String, String> data) async {
+    var request = await httpClient.postUrl(uri);
+    var encoding = utf8;
+    var body = mapToQuery(data, encoding: encoding);
+    request.headers.add('content-type', 'application/x-www-form-urlencoded; charset=utf-8');
+    request.contentLength = body.length;
+    request.write(body);
+    return IoHttpResponse(await request.close());
+  }
+
+  set findProxy(String f(Uri url)) => httpClient.findProxy = f;
+
   void close() {
     httpClient.close();
   }
+
 }
 
 class IoHttpResponse {
